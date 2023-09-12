@@ -38,7 +38,6 @@ pipeline {
         }
         stage("Run Composer Install") {
             steps {
-                sh 'chmod 777 var/www/html/vendor'
                 sh 'docker compose run --rm composer install'
             }
         }
