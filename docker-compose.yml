@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 networks:
   laravel:
@@ -75,12 +75,12 @@ services:
         - USER=${USER:-youruser}
     container_name: composer
     volumes:
-      - ./:/var/www/html
+      - ./:/var/www/html:rw
     working_dir: /var/www/html
     depends_on:
       - php
     user: ${USER:-youruser}
-    entrypoint: ['composer', '--ignore-platform-reqs']
+    entrypoint: ["composer", "--ignore-platform-reqs"]
     networks:
       - laravel
 
@@ -93,7 +93,7 @@ services:
       - 3000:3000
       - 3001:3001
     working_dir: /var/www/html
-    entrypoint: ['npm']
+    entrypoint: ["npm"]
     networks:
       - laravel
 
@@ -111,7 +111,7 @@ services:
     depends_on:
       - mysql
     working_dir: /var/www/html
-    entrypoint: ['php', '/var/www/html/artisan']
+    entrypoint: ["php", "/var/www/html/artisan"]
     networks:
       - laravel
 
