@@ -1,51 +1,43 @@
-# composer dependencies
-FROM composer AS composer-build
+FROM php:8.0.20RC1-fpm-alpine3.16
+
+ARG UID
+ARG GID
+ARG USER
+
+ENV UID=${UID}
+ENV GID=${GID}
+ENV USER=${USER}
+
+RUN mkdir -p /var/www/html
 
 WORKDIR /var/www/html
 
-COPY composer.json composer.lock /var/www/html/
+# MacOS staff group's gid is 20, so is the dialout group in alpine linux. We're not using it, let's just remove it.
+RUN delgroup dialout
 
-RUN mkdir -p /var/www/html/database/{factories,seeders} \
-    && composer install --no-dev --prefer-dist --no-scripts --no-autoloader --no-progress --ignore-platform-reqs
+RUN addgroup -g ${GID} --system ${USER}
+RUN adduser -G ${USER} --system -D -s /bin/sh -u ${UID} ${USER}
 
+RUN sed -i "s/user = www-data/user = ${USER}/g" /usr/local/etc/php-fpm.d/www.conf
+RUN sed -i "s/group = www-data/group = ${USER}/g" /usr/local/etc/php-fpm.d/www.conf
+RUN echo "php_admin_flag[log_errors] = on" >> /usr/local/etc/php-fpm.d/www.conf
 
-# npm dependencies
-# FROM node:21-alpine AS npm-build
+RUN apk add --no-cache libpng libpng-dev jpeg-dev
 
-# WORKDIR /var/www/html
+RUN docker-php-ext-configure gd --enable-gd --with-jpeg
+RUN docker-php-ext-install gd
 
-# COPY package.json package-lock.json vite.config.js /var/www/html/
+RUN docker-php-ext-install exif
 
-# COPY resources  /var/www/html/resources
+RUN apk add --no-cache zip libzip-dev
+RUN docker-php-ext-configure zip
+RUN docker-php-ext-install zip
 
-# COPY public /var/www/html/public
+RUN docker-php-ext-install pdo pdo_mysql
 
-# RUN npm install && npm run build
+RUN mkdir -p /usr/src/php/ext/redis \
+    && curl -L https://github.com/phpredis/phpredis/archive/5.3.4.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
+    && echo 'redis' >> /usr/src/php-available-exts \
+    && docker-php-ext-install redis
 
-
-# php image and dependencies
-FROM php:8.2.0-fpm as php
-
-WORKDIR /var/www/html
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    unzip libzip-dev \
-    && docker-php-ext-install zip opcache pdo pdo_mysql
-
-# override with custom php.ini settings
-
-
-# override with custom opcache settings
-# COPY docker/php/opcache.ini $PHP_INI_DIR/conf.d/
-
-COPY --from=composer  /usr/bin/composer /usr/bin/composer
-
-COPY --chown=www-data --from=composer-build /var/www/html/vendor /var/www/html/vendor
-# COPY --chown=www-data --from=npm-build /var/www/html/public /var/www/html/public
-COPY --chown=www-data . /var/www/html/
-COPY --chown=www-data . /var/www/html/storage
-
-RUN usermod --uid 1000 www-data
-RUN groupmod --gid 1000  www-data
-
-# ENTRYPOINT [ "./docker/entrypoint.sh" ]
+CMD ["php-fpm", "-y", "/usr/local/etc/php-fpm.conf", "-R"]

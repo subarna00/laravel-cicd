@@ -7,6 +7,10 @@ services:
             context: .
         volumes:
             - ./:/var/www/html
+        args:
+            - UID=${UID:-1000}
+            - GID=${GID:-1000}
+            - USER=${USER:-youruser}
         ports:
             - "8000:80"
         networks:
@@ -28,15 +32,19 @@ services:
 
     composer:
         build:
-            context: ./docker
-            dockerfile: composer.dockerfile
-
+        context: ./dockerfiles
+        dockerfile: composer.dockerfile
+        args:
+            - UID=${UID:-1000}
+            - GID=${GID:-1000}
+            - USER=${USER:-youruser}
         container_name: composer
         volumes:
         - ./:/var/www/html
         working_dir: /var/www/html
         depends_on:
         - php
+        user: ${USER:-youruser}
         entrypoint: ['composer', '--ignore-platform-reqs']
         networks:
         - app
