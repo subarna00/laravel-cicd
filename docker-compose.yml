@@ -26,5 +26,19 @@ services:
         depends_on:
             - php
 
+    composer:
+        build:
+            context: ./docker
+            dockerfile: composer.dockerfile
+
+        container_name: composer
+        volumes:
+        - ./:/var/www/html
+        working_dir: /var/www/html
+        depends_on:
+        - php
+        entrypoint: ['composer', '--ignore-platform-reqs']
+        networks:
+        - app
 networks:
     app:

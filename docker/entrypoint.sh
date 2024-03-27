@@ -42,5 +42,5 @@ chmod -R 775 /var/www/html/storage/framework/sessions
 chmod -R 775 /var/www/html/bootstrap
 chmod -R 775 /var/www/html/bootstrap/cache
 
-# php-fpm -D
-# nginx -g "daemon off;"
+php-fpm -D
+nginx -g "daemon off;"
