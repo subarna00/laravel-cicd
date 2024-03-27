@@ -32,7 +32,7 @@ pipeline {
         }
         stage("Start Docker") {
             steps {
-                sh 'make up'
+                sh 'docker compose up -d --build'
                 sh 'docker compose ps'
             }
         }
@@ -41,18 +41,18 @@ pipeline {
                 sh 'docker compose run --rm composer install'
             }
         }
-        stage("Populate .env file") {
-            steps {
-                dir("/var/lib/jenkins/workspace/envs/laravel-test") {
-                    fileOperations([fileCopyOperation(excludes: '', flattenFiles: true, includes: '.env', targetLocation: "${WORKSPACE}")])
-                }
-            }
-        }
-        stage("Run Tests") {
-            steps {
-                sh 'docker compose run --rm artisan test'
-            }
-        }
+        // stage("Populate .env file") {
+        //     steps {
+        //         dir("/var/lib/jenkins/workspace/envs/laravel-test") {
+        //             fileOperations([fileCopyOperation(excludes: '', flattenFiles: true, includes: '.env', targetLocation: "${WORKSPACE}")])
+        //         }
+        //     }
+        // }
+        // stage("Run Tests") {
+        //     steps {
+        //         sh 'docker compose run --rm artisan test'
+        //     }
+        // }
     }
     // post {
     //     success {
