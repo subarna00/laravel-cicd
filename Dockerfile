@@ -47,3 +47,5 @@ COPY --chown=www-data . /var/www/html/storage
 
 RUN usermod --uid 1000 www-data
 RUN groupmod --gid 1000  www-data
+
+# ENTRYPOINT [ "./docker/entrypoint.sh" ]
